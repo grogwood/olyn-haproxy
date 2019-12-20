@@ -45,7 +45,11 @@ frontend www-https
         bind <%= @node[:olyn_haproxy][:host] %>:<%= @https_port_item[:port] %> ssl crt <%= @ssl_certificates_item[:certificates]["#{@certificate_id}"]['file'] %>
         http-request set-header "SSL-OFFLOADED" "1"
         reqadd X-Forwarded-Proto:\ https
-        http-request redirect prefix https://www.%[hdr(host)] code 301 if { hdr_beg(host) -i <%= @local_server[:domain] %> }
+        <% if @node[:olyn_haproxy][:frontend][:force_www_prefix] -%>
+        http-request redirect prefix https://www.<%= @local_server[:domain] %> code 301 unless { hdr_beg(host) -i www. }
+        <% else -%>
+        http-request redirect prefix https://<%= @local_server[:domain] %> code 301 if { hdr(host) -i www.<%= @local_server[:domain] %> }
+        <% end -%>
         default_backend www-backend
 
 backend www-backend

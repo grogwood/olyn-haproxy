@@ -1,6 +1,9 @@
 # Default host
 default[:olyn_haproxy][:host] = '*'
 
+# URL redirection for www. host forcing
+default[:olyn_haproxy][:frontend][:force_www_prefix] = false
+
 # Frontend HTTP listener info
 default[:olyn_haproxy][:frontend][:http][:ports_data_bag_item] = 'haproxy_http'
 
