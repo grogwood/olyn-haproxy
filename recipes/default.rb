@@ -4,7 +4,6 @@ package 'haproxy' do
   options '--force-yes'
 end
 
-# TODO: Add the option of www / non www website prefixes to this template
 # Create the configuration file
 template '/etc/haproxy/haproxy.cfg' do
   source 'haproxy.cfg.erb'
