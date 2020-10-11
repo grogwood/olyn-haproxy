@@ -17,6 +17,7 @@ global
         #  https://hynek.me/articles/hardening-your-web-servers-ssl-ciphers/
         ssl-default-bind-ciphers ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS
         ssl-default-bind-options no-sslv3
+        tune.ssl.default-dh-param 2048
 
 defaults
         log     global
@@ -35,23 +36,24 @@ defaults
         errorfile 504 /etc/haproxy/errors/504.http
 
 frontend www-http
-        bind <%= @node[:olyn_haproxy][:host] %>:<%= @http_port_item[:port] %>
+        bind <%= @config[:host] %>:<%= @frontend[:http_port_item][:port] %>
         http-request set-header "SSL-OFFLOADED" "1"
         reqadd X-Forwarded-Proto:\ http
         http-request redirect scheme https code 301 if !{ ssl_fc }
         default_backend www-backend
 
 frontend www-https
-        bind <%= @node[:olyn_haproxy][:host] %>:<%= @https_port_item[:port] %> ssl crt <%= @ssl_certificates_item[:certificates]["#{@certificate_id}"]['file'] %>
+        bind <%= @config[:host] %>:<%= @frontend[:https_port_item][:port] %> tfo ssl crt <%= @ssl[:ssl_certificates_item][:certificates]["#{@ssl[:certificate_id]}"]['file'] %> alpn h2,http/1.1
+        mode http
         http-request set-header "SSL-OFFLOADED" "1"
         reqadd X-Forwarded-Proto:\ https
-        <% if @node[:olyn_haproxy][:frontend][:force_www_prefix] -%>
-        http-request redirect prefix https://www.<%= @local_server[:domain] %> code 301 unless { hdr_beg(host) -i www. }
+        <% if @config[:force_www_prefix] -%>
+        http-request redirect prefix https://www.<%= @config[:local_server_item][:domain] %> code 301 unless { hdr_beg(host) -i www. }
         <% else -%>
-        http-request redirect prefix https://<%= @local_server[:domain] %> code 301 if { hdr(host) -i www.<%= @local_server[:domain] %> }
+        http-request redirect prefix https://<%= @config[:local_server_item][:domain] %> code 301 if { hdr(host) -i www.<%= @config[:local_server_item][:domain] %> }
         <% end -%>
         default_backend www-backend
 
 backend www-backend
         option forwardfor
-        server <%= @node[:olyn_haproxy][:backend][:server_name] %> <%= @node[:olyn_haproxy][:backend][:host] %>:<%= @backend_port_item[:port] %> maxconn 256
+        server <%= @backend[:server_name] %> <%= @backend[:host] %>:<%= @backend[:port_item][:port] %> maxconn 256
