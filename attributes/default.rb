@@ -3,7 +3,6 @@ default[:olyn_haproxy][:config][:host] = '*'
 
 # Frontend HTTP listener info
 default[:olyn_haproxy][:frontend][:http][:ports_data_bag_item] = 'www_frontend_http'
-default[:olyn_haproxy][:frontend][:force_www_prefix] = false
 
 # Frontend HTTPs listener info
 default[:olyn_haproxy][:frontend][:https][:ports_data_bag_item]            = 'www_frontend_https'

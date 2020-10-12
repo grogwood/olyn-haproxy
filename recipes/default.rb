@@ -13,7 +13,6 @@ template '/etc/haproxy/haproxy.cfg' do
   variables(
     config: {
       host:              node[:olyn_haproxy][:config][:host],
-      force_www_prefix:  node[:olyn_haproxy][:frontend][:force_www_prefix],
       local_server_item: data_bag_item('servers', node[:hostname])
     },
     ssl: {

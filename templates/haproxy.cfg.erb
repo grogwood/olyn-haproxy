@@ -38,20 +38,20 @@ defaults
 frontend www-http
         bind <%= @config[:host] %>:<%= @frontend[:http_port_item][:port] %>
         http-request set-header "SSL-OFFLOADED" "1"
-        reqadd X-Forwarded-Proto:\ http
         http-request redirect scheme https code 301 if !{ ssl_fc }
+        reqadd X-Forwarded-Proto:\ http
         default_backend www-backend
 
 frontend www-https
         bind <%= @config[:host] %>:<%= @frontend[:https_port_item][:port] %> tfo ssl crt <%= @ssl[:ssl_certificates_item][:certificates]["#{@ssl[:certificate_id]}"]['file'] %> alpn h2,http/1.1
         mode http
         http-request set-header "SSL-OFFLOADED" "1"
-        reqadd X-Forwarded-Proto:\ https
-        <% if @config[:force_www_prefix] -%>
+        <% if @config[:local_server_item][:options][:haproxy][:force_www_prefix] -%>
         http-request redirect prefix https://www.<%= @config[:local_server_item][:domain] %> code 301 unless { hdr_beg(host) -i www. }
         <% else -%>
         http-request redirect prefix https://<%= @config[:local_server_item][:domain] %> code 301 if { hdr(host) -i www.<%= @config[:local_server_item][:domain] %> }
         <% end -%>
+        reqadd X-Forwarded-Proto:\ https
         default_backend www-backend
 
 backend www-backend
